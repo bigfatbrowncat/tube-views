@@ -1,0 +1,1 @@
+"$1" -cp "tube-views-java.jar\;json-20150729.jar\;firststep/firststep-java.jar\;bellmodel/bellmodel-java.jar" -Djava.library.path=".;firststep/;bellmodel/" tubeviews.TubeViewsWindow

@@ -1,0 +1,6 @@
+[submodule "firststep"]
+	path = firststep
+	url = ../firststep/
+[submodule "bellmodel"]
+	path = bellmodel
+	url = ../bellmodel
