@@ -121,7 +121,6 @@ add_dependencies(${PROJNAME} copy_jars)
 
 add_dependencies(${PROJNAME} firststep)
 add_dependencies(${PROJNAME} bellmodel)
-add_dependencies(${PROJNAME} firststep)
 
 #add_dependencies(${PROJNAME} ${JARNAME})
 
