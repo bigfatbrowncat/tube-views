@@ -55,10 +55,16 @@ class SoundThread extends Thread {
 		
 		Random r = new Random();
 		
+		volatile boolean kickFlag = true;
+		
 		public void randomKick() {
+			kickFlag = true;
+		}
+		
+		private void doKick() {
 			/*for (int mptIndex = 0; mptIndex < 4; mptIndex ++)*/ {
 				MatPoint[] mps = new MatPoint[] { mpt11, mpt12, mpt21, mpt22 };
-				double kickValue = r.nextDouble() * 1 + 6;
+				double kickValue = r.nextDouble() * 2 + 10;
 				
 				double angle;
 				//if (r.nextDouble() < 0.5) {
@@ -72,6 +78,7 @@ class SoundThread extends Thread {
 				mps[mptIndex].setVx(mps[mptIndex].getVx() + kickValue * Math.cos(angle));
 				mps[mptIndex].setVy(mps[mptIndex].getVy() + kickValue * Math.sin(angle));
 			}
+			kickFlag = false;
 		}
 		
 		public void run() {
@@ -79,14 +86,15 @@ class SoundThread extends Thread {
 				PortAudio.initialize();
 				
 				int channels = 2;
-				int frames = 1;
 				int freq = 44100;
+				int frames = (int)(freq * 0.05);	// Buffer is 0.05 second (to support slow devices)
 				
-				ModelCalc mc = initBells(1.0 / frames / freq, 1.0);	// 3 seconds of relaxation
+				ModelCalc mc = initBells(1.0 / freq, 1.0);	// 1 second of relaxation
 	
 				StreamParameters isp = new StreamParameters();
 				isp.channelCount = channels;
 				
+				float[] buf = new float[frames * channels];
 				while (true) {
 					try {
 						isp.device = PortAudio.getDefaultOutputDevice();
@@ -94,21 +102,17 @@ class SoundThread extends Thread {
 						
 						BlockingStream bs = PortAudio.openStream(null, isp, freq, frames, 0);
 						bs.start();
-						float[] buf = new float[frames * channels];
 						while (true) {
 							for (int i = 0; i < buf.length; i += 2) {
-								double xavg = 0;
-								
-								for (int q = 0; q < frames; q++) {
-									xavg += mc.doStep();
-								}
-								xavg /= frames;
+
+								double xavg = mc.doStep();
 			
 								buf[i] = (float) xavg;
 								buf[i + 1] = (float) xavg;
 							}
 							if (stopFlag) break;
 							bs.write(buf, frames);
+							if (kickFlag) doKick();
 						}
 						bs.stop();
 					} catch (PortAudioException e) {
