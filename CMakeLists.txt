@@ -119,12 +119,8 @@ add_subdirectory(firststep)
 add_subdirectory(bellmodel)
 
 #	D2. Target dependencies
-add_custom_target(${PROJNAME} DEPENDS ${JARNAME})
+add_custom_target(${PROJNAME} DEPENDS ${JARNAME} copy_jars firststep bellmodel)
 add_dependencies(run ${PROJNAME})
-add_dependencies(${PROJNAME} copy_jars)
-
-add_dependencies(${PROJNAME} firststep)
-add_dependencies(${PROJNAME} bellmodel)
 
 #add_dependencies(${PROJNAME} ${JARNAME})
 

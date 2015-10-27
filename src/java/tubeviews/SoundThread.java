@@ -79,7 +79,7 @@ class SoundThread extends Thread {
 				PortAudio.initialize();
 				
 				int channels = 2;
-				int frames = 2;
+				int frames = 1;
 				int freq = 44100;
 				
 				ModelCalc mc = initBells(1.0 / frames / freq, 1.0);	// 3 seconds of relaxation
