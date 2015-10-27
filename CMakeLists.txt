@@ -61,7 +61,7 @@ set(CMAKE_JAVA_COMPILE_FLAGS "-source" "1.7" "-target" "1.7")
 set(CMAKE_JAVA_INCLUDE_PATH 
 	"${CMAKE_BINARY_DIR}/firststep/firststep-java.jar" 
 	"${CMAKE_BINARY_DIR}/bellmodel/bellmodel-java.jar"
-	"${CMAKE_BINARY_DIR}/json-20150729.jar"
+	"${CMAKE_BINARY_DIR}/org.json.jar"
 )
 
 # 	J3. Sources and java resources
@@ -86,11 +86,15 @@ if (MINGW)
 	set(
 		CMD "${CMAKE_CURRENT_SOURCE_DIR}/../../run-mingw.sh"
 	)
-else (MINGW)
+elseif (APPLE)
+	set(
+		CMD "${CMAKE_CURRENT_SOURCE_DIR}/../../run-osx.sh"
+	)
+else ()
 	set(
 		CMD "${CMAKE_CURRENT_SOURCE_DIR}/../../run-unix.sh"
 	)
-endif (MINGW)
+endif ()
 
 message(STATUS "Runner command: ${CMD}")
 

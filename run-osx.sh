@@ -1,0 +1,1 @@
+"$1" -XstartOnFirstThread -cp "tube-views-java.jar:org.json.jar:firststep/firststep-java.jar:bellmodel/bellmodel-java.jar" -Djava.library.path=.:firststep:bellmodel:firststep/Debug:bellmodel/Debug tubeviews.TubeViewsWindow
