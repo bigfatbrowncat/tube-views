@@ -14,7 +14,7 @@ import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class HackTubeLoginStage2 {
+public class HackTubeServiceLoginAuth {
 	
 	private static final String USER_AGENT = "Mozilla/5.0";
 	

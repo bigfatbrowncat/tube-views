@@ -1,37 +1,19 @@
 package tubeviews;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.HashMap;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import firststep.Color;
 import firststep.Font;
 import firststep.Image;
-import firststep.Image.Flag;
-import firststep.Image.Flags;
 import firststep.IntXY;
 import firststep.Paint;
 import firststep.Window;
-import hacktube.Configuration;
-import hacktube.HackTubeData;
-import hacktube.HackTubeException;
 import hacktube.HackTube;
-import hacktube.HackTubeSearchQuery;
-import hacktube.RequestException;
-import tubeviews.TubeThread.Updater;
+import hacktube.HackTubeException;
 
-public class TubeViewsWindow extends Window implements Updater {
+public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler {
 	
 	private static final String APPNAME = "Tube Views";
 	private static float fps = 25.0f;
@@ -42,9 +24,11 @@ public class TubeViewsWindow extends Window implements Updater {
 	
 	private Font lightFont;
 	
-	private Data data;
+	private TubeData data;
 	private HashMap<String, Float> lastVideoChangeTimes = new HashMap<>();
 
+	private HashMap<String, ItemPane> panes = new HashMap<>();
+	
 	private float getTimeSinceStartup() {
 		return (float)((double)System.currentTimeMillis() - startupMoment) / 1000;
 	}
@@ -66,105 +50,46 @@ public class TubeViewsWindow extends Window implements Updater {
 			return 0.0f;
 		}
 	}
-	
-	HashMap<String, byte[]> previewData = new HashMap<>();
-	private HashMap<String, Thread> downloaders = new HashMap<>();
-	void loadPreview(String key, URL target) {
-		try {
-			System.out.println("Downloading image from " + target.toString());
-			
-			//InputStream is = this.getClass().getResourceAsStream("/tubeviews/default.jpg");
-			InputStream is = target.openStream();
-			ByteArrayOutputStream os = new ByteArrayOutputStream();
-			byte[] buffer = new byte[1024];
-			int len = is.read(buffer);
-			while (len != -1) {
-			    os.write(buffer, 0, len);
-			    len = is.read(buffer);
-			}
-			
-			synchronized (previewData) {
-				previewData.put(key, os.toByteArray());
-			}
-		} catch (IOException e) {
-			throw new RuntimeException("Can't load image for video " + key, e);
-		}
-	}
-	private HashMap<String, Image> previewImages = new  HashMap<>();
-	
+		
 	@Override
 	protected synchronized void onFrame() {
 		if (data != null) {
 			int j = 0;
 			
-			for (String s : data.videos.keySet()) {
+			for (String id : data.videos.keySet()) {
 				float h = getHeight() / data.videos.size();
 				
 				float x = getWidth() / 2, yt = h * j, y = h * (0.5f + j);
 				
-
-				// Drawing background
-				synchronized (previewData) {
-					if (!previewData.containsKey(s)) {
-						final String ss = s;
-						if (downloaders.get(ss) == null) {
-							downloaders.put(ss, new Thread("Preview loading for " + s) {
-								@Override
-								public void run() {
-									try {
-										URL hqpreview = new URL("https://i.ytimg.com/vi/" + ss + "/maxresdefault.jpg");
-										loadPreview(ss, hqpreview);
-									} catch (MalformedURLException e) {
-										e.printStackTrace();
-									}
-								}
-							});
-							downloaders.get(ss).start();
-						}
-
-					} else {
+				if (panes.containsKey(id)) {
+					Image img = panes.get(id).getPreviewImage();
+					if (img != null) {
+					
+						IntXY imgSize = img.getSize();
+						float imgH = ((float)imgSize.getY() / imgSize.getX() * getWidth()); 
 						
-						Image img = null;
-						if (!previewImages.containsKey(s)) {
-							try {
-								img = new Image(new ByteArrayInputStream(previewData.get(s)), Flags.of(Flag.REPEATX, Flag.REPEATY));
-								previewImages.put(s, img);
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}						
-						} else {
-							img = previewImages.get(s);
-						}
+						beginPath();
 						
-						
-							
-							IntXY imgSize = img.getSize();
-							float imgH = ((float)imgSize.getY() / imgSize.getX() * getWidth()); 
-							
-							beginPath();
-							
-							float delta = imgH / 2 - h / 2 - yt;
-							Paint p = imagePattern(0, -delta, getWidth(), imgH, 0, img, 0.8f);
-							fillPaint(p);
-							//fillColor(Color.fromRGBA(j * 10.0f / 100f, j * 10.0f / 100, 0, 1.0f));
-							rect(0, yt, getWidth(), h);
-							fill();
-							
-							img.delete();
-						
+						float delta = imgH / 2 - h / 2 - yt;
+						Paint p = imagePattern(0, -delta, getWidth(), imgH, 0, img, 0.8f);
+						fillPaint(p);
+						//fillColor(Color.fromRGBA(j * 10.0f / 100f, j * 10.0f / 100, 0, 1.0f));
+						rect(0, yt, getWidth(), h);
+						fill();
 					}
+				} else {
+					panes.put(id, new ItemPane(id));
 				}
-				
+								
 				// Drawing counter
 	
 				beginPath();
 				textAlign(HAlign.CENTER, VAlign.MIDDLE);
 				fontFace(lightFont);
-				float textSize = h * (0.85f + 0.15f * textBlinkEnlarging(lastVideoChangeTimes.get(s) != null ? lastVideoChangeTimes.get(s) : 0));
+				float textSize = h * (0.85f + 0.15f * textBlinkEnlarging(lastVideoChangeTimes.get(id) != null ? lastVideoChangeTimes.get(id) : 0));
 				fontSize(textSize);
 				
-				text(x, y, String.valueOf(data.videos.get(s).viewsCount));
+				text(x, y, String.valueOf(data.videos.get(id).viewsCount));
 				fill();
 				j++;
 			}
@@ -176,8 +101,8 @@ public class TubeViewsWindow extends Window implements Updater {
 	 * @return how much we should wait before the next request
 	 */
 	@Override
-	public synchronized float update(Data data) {
-		Data oldData = this.data;
+	public synchronized float update(TubeData data) {
+		TubeData oldData = this.data;
 		this.data = data;
 		float curTime = getTimeSinceStartup();
 

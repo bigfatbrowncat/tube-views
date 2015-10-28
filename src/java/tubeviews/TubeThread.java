@@ -9,35 +9,34 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import hacktube.Configuration;
 import hacktube.HackTubeData;
 import hacktube.HackTubeException;
-import hacktube.HackTubeSearchQuery;
-import hacktube.HackTubeStatisticsQuery;
+import hacktube.HackTubeQuery;
+import hacktube.HackTubeSearch;
 import hacktube.TitleData;
 import hacktube.VideoData;
-import tubeviews.Data.Video;
+import tubeviews.TubeData.Video;
 
-class TubeThread extends Thread {
-	interface Updater {
-		float update(Data data);
+public class TubeThread extends Thread {
+	public interface UpdateHandler {
+		float update(TubeData data);
 	}
 	
-	private Updater updater;
-	public void setUpdater(Updater updater) {
+	private UpdateHandler updater;
+	public void setUpdater(UpdateHandler updater) {
 		this.updater = updater;
 	}
 	
 	//private long vv = 0;
 	
 	public void interrupt() {
-		HackTubeStatisticsQuery.interruptConnection();
+		HackTubeQuery.interruptConnection();
 		super.interrupt();
 	}
 	
 	@Override
 	public void run() {
-		int counterAfterSearch = 0;
+		int requestsAfterSearch = 0;
 		List<String> videosList = null;
 		while (true) {
 			try {
@@ -46,8 +45,8 @@ class TubeThread extends Thread {
 				float waitTime = 1.0f;
 				
 				try {
-					if (counterAfterSearch == 0) {
-						JSONObject resp = HackTubeSearchQuery.requestJSON();
+					if (requestsAfterSearch == 0) {
+						JSONObject resp = HackTubeSearch.requestJSON();
 						JSONArray respResult = (JSONArray) resp.get("result");
 						List<TitleData> tds = HackTubeData.decodeSearchTitleData(respResult);
 						videosList = new ArrayList<>();
@@ -57,7 +56,7 @@ class TubeThread extends Thread {
 					}
 
 					
-					JSONObject resp = HackTubeStatisticsQuery.requestJSON(videosList);
+					JSONObject resp = HackTubeQuery.requestJSON(videosList);
 					JSONArray respResult = (JSONArray) resp.get("result");
 					
 					Set<VideoData> vds = HackTubeData.decodeVideosData(videosList, respResult);
@@ -86,9 +85,9 @@ class TubeThread extends Thread {
 					}
 					System.out.println();
 					
-					waitTime = updater.update(new Data(videosMap));
+					waitTime = updater.update(new TubeData(videosMap));
 					
-					counterAfterSearch = (counterAfterSearch + 1) % 10;
+					requestsAfterSearch = (requestsAfterSearch + 1) % 10;
 	
 				} catch (HackTubeException e) {
 					System.out.println("We have a problem here: ");

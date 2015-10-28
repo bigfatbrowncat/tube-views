@@ -13,7 +13,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.json.JSONObject;
 
-public class HackTubeStatisticsQuery {
+public class HackTubeQuery {
 
 	private static final String USER_AGENT = "Mozilla/5.0";
 

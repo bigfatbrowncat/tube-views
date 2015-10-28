@@ -25,12 +25,12 @@ public class HackTube {
 		try {
 			System.out.println(" -------------------- STAGE 1 ----------------------");
 	
-			HackTubeLoginStage1.requestLoginPage();
+			HackTubeServiceLogin.requestLoginPage();
 			printCookies();
 			
 			System.out.println(" -------------------- STAGE 2 ----------------------");
 			
-			HackTubeLoginStage2.requestLoginPage(Configuration.getInstance().email, Configuration.getInstance().password);
+			HackTubeServiceLoginAuth.requestLoginPage(Configuration.getInstance().email, Configuration.getInstance().password);
 			printCookies();
 			
 	        System.out.println(" -------------------- STAGE 3 ----------------------");

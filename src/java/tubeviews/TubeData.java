@@ -5,7 +5,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Data {
+/**
+ * YouTube statistics data item
+ */
+public class TubeData {
 	public static class Video {
 		public final String name;
 		public final URL preview;
@@ -20,7 +23,7 @@ public class Data {
 	
 	public final Map<String, Video> videos;
 
-	public Data(Map<String, Video> videos) {
+	public TubeData(Map<String, Video> videos) {
 		super();
 		this.videos = Collections.unmodifiableMap(new HashMap<>(videos));
 	}
