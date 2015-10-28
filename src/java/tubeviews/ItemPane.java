@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+import firststep.Canvas;
 import firststep.Image;
+import firststep.IntXY;
+import firststep.Paint;
 import firststep.Image.Flag;
 import firststep.Image.Flags;
 
@@ -99,6 +102,22 @@ public class ItemPane {
 				
 			}
 	
+		}
+	}
+	
+	public void draw(Canvas c, float left, float top, float width, float height) {
+		if (getPreviewImage() != null) {
+		
+			IntXY imgSize = previewImage.getSize();
+			float imgH = ((float)imgSize.getY() / imgSize.getX() * width); 
+	
+			c.beginPath();
+			
+			float delta = imgH / 2 - height / 2 - top;
+			Paint p = c.imagePattern(0, -delta, width, imgH, 0, previewImage, 1.f);
+			c.fillPaint(p);
+			c.rect(0, top, width, height);
+			c.fill();
 		}
 	}
 	

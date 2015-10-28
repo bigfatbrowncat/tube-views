@@ -62,21 +62,8 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 				float x = getWidth() / 2, yt = h * j, y = h * (0.5f + j);
 				
 				if (panes.containsKey(id)) {
-					Image img = panes.get(id).getPreviewImage();
-					if (img != null) {
-					
-						IntXY imgSize = img.getSize();
-						float imgH = ((float)imgSize.getY() / imgSize.getX() * getWidth()); 
-						
-						beginPath();
-						
-						float delta = imgH / 2 - h / 2 - yt;
-						Paint p = imagePattern(0, -delta, getWidth(), imgH, 0, img, 0.8f);
-						fillPaint(p);
-						//fillColor(Color.fromRGBA(j * 10.0f / 100f, j * 10.0f / 100, 0, 1.0f));
-						rect(0, yt, getWidth(), h);
-						fill();
-					}
+					panes.get(id).draw(this, 0, yt, getWidth(), h);
+
 				} else {
 					panes.put(id, new ItemPane(id));
 				}
