@@ -23,6 +23,8 @@ public class TubeThread extends Thread {
 	}
 	
 	private UpdateHandler updater;
+	private volatile boolean gracefulInterrupt = true;
+	
 	public void setUpdater(UpdateHandler updater) {
 		this.updater = updater;
 	}
@@ -30,6 +32,7 @@ public class TubeThread extends Thread {
 	//private long vv = 0;
 	
 	public void interrupt() {
+		gracefulInterrupt = true;
 		HackTubeQuery.interruptConnection();
 		super.interrupt();
 	}
@@ -90,14 +93,18 @@ public class TubeThread extends Thread {
 					requestsAfterSearch = (requestsAfterSearch + 1) % 10;
 	
 				} catch (HackTubeException e) {
-					System.out.println("We have a problem here: ");
-					e.printStackTrace();
+					if (!gracefulInterrupt) {
+						System.out.println("We have a problem here: ");
+						e.printStackTrace();
+					} else {
+						System.out.println("Request interrupted gracefully");
+					}
 				}
 				
 				Thread.sleep((long) (waitTime * 1000));
 				
 			} catch (InterruptedException e) {
-				System.out.println("Interrupted by user!");
+				System.out.println("Networking thread interrupted gracefully");
 				break;
 			}
 		}
