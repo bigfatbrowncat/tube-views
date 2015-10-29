@@ -1,7 +1,6 @@
 package tubeviews;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -10,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import hacktube.HackTube;
 import hacktube.HackTubeData;
 import hacktube.HackTubeException;
 import hacktube.HackTubeQuery;
@@ -19,7 +19,19 @@ import hacktube.VideoData;
 import tubeviews.TubeData.Video;
 
 public class TubeThread extends Thread {
+	private static final int LOGIN_ATTEMPTS = 3;
+	
+	public enum Request {
+		LOGIN, SEARCH, QUERY;
+	}
+	
+	public enum Status {
+		STARTED, SUCCEEDED, FAILED;
+	}
+	
 	public interface UpdateHandler {
+		void reportState(Request request, Status status);
+		
 		float update(TubeData data);
 	}
 	
@@ -38,34 +50,53 @@ public class TubeThread extends Thread {
 		super.interrupt();
 	}
 	
+	private void login() {
+		int attempt = 0;
+		boolean loginSucceeded = false;
+		while (!loginSucceeded && attempt < LOGIN_ATTEMPTS) {
+			try {
+				updater.reportState(Request.LOGIN, Status.STARTED);
+				HackTube.login();
+				loginSucceeded = true;
+				updater.reportState(Request.LOGIN, Status.SUCCEEDED);
+			} catch (HackTubeException e) {
+				updater.reportState(Request.LOGIN, Status.FAILED);
+				e.printStackTrace();
+			}
+			attempt ++;
+		}
+		
+	}
+	
 	@Override
 	public void run() {
+		
+		// I. Logging in to the server
+		login();
+		
+		// II. Starting main search-query loop
 		int requestsAfterSearch = 0;
-		List<String> videosList = null;
+		List<String> foundVideoIDs = null;
 		while (true) {
 			try {
 
 				HashMap<String, Video> videosMap = new HashMap<>();
 				float waitTime = 1.0f;
 				
-				JSONObject resp = null;
 				try {
 					if (requestsAfterSearch == 0) {
-						resp = HackTubeSearch.requestJSON();
-						JSONArray respResult = (JSONArray) resp.get("result");
-						List<TitleData> tds = HackTubeData.decodeSearchTitleData(respResult);
-						videosList = new ArrayList<>();
+
+						updater.reportState(Request.SEARCH, Status.STARTED);
+						List<TitleData> tds = HackTubeSearch.request();
+						foundVideoIDs = new ArrayList<>();
 						for (TitleData td : tds) {
-							videosList.add(td.id);
+							foundVideoIDs.add(td.id);
 						}
+						updater.reportState(Request.SEARCH, Status.SUCCEEDED);
 					}
 
-					
-					resp = HackTubeQuery.requestJSON(videosList);
-						
-					JSONArray respResult = (JSONArray) resp.get("result");
-					
-					Set<VideoData> vds = HackTubeData.decodeVideosData(videosList, respResult);
+					updater.reportState(Request.QUERY, Status.STARTED);
+					List<VideoData> vds = HackTubeQuery.request(foundVideoIDs);
 					
 					HashMap<String, Long> viewsRealtime = new HashMap<>();
 					for (VideoData vd : vds) {
@@ -78,6 +109,7 @@ public class TubeThread extends Thread {
 	
 						viewsRealtime.put(id, views);
 					}
+					updater.reportState(Request.QUERY, Status.SUCCEEDED);
 					
 					HashMap<String, VideoData> vdss = new HashMap<>();
 					for (VideoData vd : vds) {
@@ -95,11 +127,6 @@ public class TubeThread extends Thread {
 					
 					requestsAfterSearch = (requestsAfterSearch + 1) % 10;
 					
-				} catch (JSONException e) {
-					if (resp != null) {
-						System.err.println("Server response incorrect: " + resp.toString());
-					}
-					e.printStackTrace();
 				} catch (HackTubeException e) {
 					if (!gracefulInterrupt) {
 						System.err.println("We have a problem here: ");

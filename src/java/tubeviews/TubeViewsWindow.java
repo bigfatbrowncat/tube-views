@@ -12,6 +12,8 @@ import firststep.Paint;
 import firststep.Window;
 import hacktube.HackTube;
 import hacktube.HackTubeException;
+import tubeviews.TubeThread.Request;
+import tubeviews.TubeThread.Status;
 
 public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler {
 	
@@ -115,24 +117,13 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		soundThread.start();
 		tubeThread.start();
 	}
-	
-	public static void main(String... args) {
-        
-        try {
-			HackTube.login();
-		} catch (HackTubeException e) {
-			e.printStackTrace();
-		}
-	        
-        /*try {
-			JSONObject resp = HackTubeSearchQuery.requestJSON();
 
-			HackTubeData.decodeSearchTitleData(resp);
-		} catch (RequestException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-        
+	@Override
+	public void reportState(Request request, Status status) {
+		System.out.println("State change: " + request + "; " + status);
+	}
+
+	public static void main(String... args) {
         new TubeViewsWindow();
 		Window.loop(fps);
 	}

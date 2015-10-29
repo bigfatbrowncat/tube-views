@@ -32,22 +32,17 @@ public class HackTube {
 		}
 	}
 	
-	public static void login() throws HackTubeException {
-		try {
-			System.out.println(" -------------------- STAGE 1 ----------------------");
-	
-			HackTubeServiceLogin.requestLoginPage();
-			printCookies();
-			
-			System.out.println(" -------------------- STAGE 2 ----------------------");
-			
-			HackTubeServiceLoginAuth.requestLoginPage(Configuration.getInstance().account.email, Configuration.getInstance().account.password);
-			printCookies();
-			
-	        System.out.println(" -------------------- STAGE 3 ----------------------");
-		} catch (RequestException e) {
-			throw new HackTubeException(e);
-		}
+	public static void login() throws RequestException {
+		System.out.println(" -------------------- STAGE 1 ----------------------");
 
+		HackTubeServiceLogin.requestLoginPage();
+		printCookies();
+		
+		System.out.println(" -------------------- STAGE 2 ----------------------");
+		
+		HackTubeServiceLoginAuth.requestLoginPage(Configuration.getInstance().account.email, Configuration.getInstance().account.password);
+		printCookies();
+		
+        System.out.println(" -------------------- STAGE 3 ----------------------");
 	}
 }

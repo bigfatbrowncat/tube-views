@@ -100,9 +100,9 @@ public class HackTubeData {
 		return res;
 	}
 	
-	public static LinkedHashSet<VideoData> decodeVideosData(List<String> videoIds, JSONArray respResult) throws DataDecodeException {
+	public static List<VideoData> decodeVideosData(List<String> videoIds, JSONArray respResult) throws DataDecodeException {
 		try {
-			LinkedHashSet<VideoData> res = new LinkedHashSet<>();
+			List<VideoData> res = new ArrayList<>();
 			
 			JSONArray titles = respResult.getJSONArray(2);
 			List<TitleData> titlesData = decodeQueryTitleData(extractLevel3(titles));

@@ -11,6 +11,7 @@ import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class HackTubeSearch {
@@ -23,7 +24,13 @@ public class HackTubeSearch {
 		if (connection != null) connection.disconnect();
 	}
 	
-	public static JSONObject requestJSON() throws RequestException {
+	public static List<TitleData> request() throws RequestException {
+		JSONObject resp = HackTubeSearch.requestJSON();
+		JSONArray respResult = (JSONArray) resp.get("result");
+		return HackTubeData.decodeSearchTitleData(respResult);
+	}
+	
+	static JSONObject requestJSON() throws RequestException {
 		
 		String query = 
 		"{\"method\":\"search\",\"params\":{\"1\":[{\"1\":\"\",\"2\":[[,4]],\"3\":{\"1\":1},\"8\":{\"2\":5}},{\"1\":\"\",\"2\":[[,132]],\"3\":{\"1\":0},\"5\":{\"2\":1},\"8\":{\"2\":5}}],\"6\":{\"3\":\"#r=summary;fi=u-TEfV3TZMNwL2a8a9SoRNKg\"}}}";

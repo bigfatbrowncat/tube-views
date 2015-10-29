@@ -8,9 +8,11 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.util.List;
+import java.util.Set;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class HackTubeQuery {
@@ -23,7 +25,13 @@ public class HackTubeQuery {
 		if (connection != null) connection.disconnect();
 	}
 	
-	public static JSONObject requestJSON(List<String> videoIds) throws RequestException {
+	public static List<VideoData> request(List<String> foundVideoIDs) throws RequestException, DataDecodeException {
+		JSONObject resp = HackTubeQuery.requestJSON(foundVideoIDs);
+		JSONArray respResult = (JSONArray) resp.get("result");
+		return HackTubeData.decodeVideosData(foundVideoIDs, respResult);
+	}
+	
+	static JSONObject requestJSON(List<String> videoIds) throws RequestException {
 		if (videoIds.size() == 0) return new JSONObject();
 		
 		String queryTemplateBegin = 
