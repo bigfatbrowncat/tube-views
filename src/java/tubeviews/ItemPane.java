@@ -7,11 +7,13 @@ import java.io.InputStream;
 import java.net.URL;
 
 import firststep.Canvas;
+import firststep.Canvas.HAlign;
+import firststep.Canvas.VAlign;
 import firststep.Image;
+import firststep.Image.Flags;
 import firststep.IntXY;
 import firststep.Paint;
-import firststep.Image.Flag;
-import firststep.Image.Flags;
+import tubeviews.TubeData.Video;
 
 public class ItemPane {
 	private String videoId;
@@ -30,7 +32,33 @@ public class ItemPane {
 	 * Preview image constructed from {@link previewImageData} when the downloading is finished
 	 */
 	private Image previewImage;
+	
+	private float lastVideoChangeTime;
+	
+	private Video video;
 
+	private static long startupMoment;
+	private float getTimeSinceStartup() {
+		return (float)((double)System.currentTimeMillis() - startupMoment) / 1000;
+	}
+	
+	private float textBlinkEnlarging(float startTime) {
+		float raisingTime = 0.03f;
+		float loweringTime = 0.1f;
+		float curTime = getTimeSinceStartup();
+		
+		if (curTime < startTime) return 0.0f; 
+		else if (curTime - startTime < raisingTime) {
+			float x = curTime - startTime;
+			return x / raisingTime;
+		} else if (curTime - startTime < raisingTime + loweringTime) {
+			float x = curTime - startTime - raisingTime;
+			return 1.0f - x / loweringTime;
+		} else {
+			return 0.0f;
+		}
+	}
+	
 	private void loadPreview(URL target) {
 		try {
 			System.out.println("Downloading image from " + target.toString());
@@ -54,6 +82,7 @@ public class ItemPane {
 	
 	public ItemPane(String videoId) {
 		this.videoId = videoId;
+		startupMoment = System.currentTimeMillis();
 	}
 
 	public Image getPreviewImage() {
@@ -106,22 +135,47 @@ public class ItemPane {
 	}
 	
 	public void draw(Canvas c, float left, float top, float width, float height) {
-		if (getPreviewImage() != null) {
-		
-			IntXY imgSize = previewImage.getSize();
-			float imgH = ((float)imgSize.getY() / imgSize.getX() * width); 
-	
-			c.beginPath();
+		if (video != null) {
+			if (getPreviewImage() != null) {
 			
-			float delta = imgH / 2 - height / 2 - top;
-			Paint p = c.imagePattern(0, -delta, width, imgH, 0, previewImage, 1.f);
-			c.fillPaint(p);
-			c.rect(0, top, width, height);
+				IntXY imgSize = previewImage.getSize();
+				float imgH = ((float)imgSize.getY() / imgSize.getX() * width); 
+		
+				c.beginPath();
+				
+				float delta = imgH / 2 - height / 2 - top;
+				Paint p = c.imagePattern(0, -delta, width, imgH, 0, previewImage, 1.f);
+				c.fillPaint(p);
+				c.rect(0, top, width, height);
+				c.fill();
+			}
+		
+			c.beginPath();
+			c.textAlign(HAlign.CENTER, VAlign.MIDDLE);
+			float textSize = height * (0.85f + 0.15f * textBlinkEnlarging(lastVideoChangeTime));
+			c.fontSize(textSize);
+			
+			c.text(left + width / 2, top + height / 2, String.valueOf(video.viewsCount));
 			c.fill();
 		}
 	}
 	
 	public void delete() {
 		if (previewImage != null) previewImage.delete();
+	}
+	
+	/**
+	 * 
+	 * @param video
+	 * @return <code>true</code> if the video actually changed 
+	 */
+	public boolean setVideo(Video video) {
+		boolean res = false;
+		if (this.video == null || video.viewsCount != this.video.viewsCount) {
+			this.lastVideoChangeTime = (float)System.currentTimeMillis() / 1000;
+			res = true;
+		}
+		this.video = video;
+		return res;
 	}
 }

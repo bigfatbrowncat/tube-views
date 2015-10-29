@@ -17,7 +17,6 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	
 	private static final String APPNAME = "Tube Views";
 	private static float fps = 25.0f;
-	private static long startupMoment;
 	
 	private SoundThread soundThread = new SoundThread();
 	private TubeThread tubeThread = new TubeThread();
@@ -25,30 +24,13 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	private Font lightFont;
 	
 	private TubeData data;
-	private HashMap<String, Float> lastVideoChangeTimes = new HashMap<>();
+	//private HashMap<String, Float> lastVideoChangeTimes = new HashMap<>();
 
 	private HashMap<String, ItemPane> panes = new HashMap<>();
 	
+	private static long startupMoment;
 	private float getTimeSinceStartup() {
 		return (float)((double)System.currentTimeMillis() - startupMoment) / 1000;
-	}
-	
-	
-	private float textBlinkEnlarging(float startTime) {
-		float raisingTime = 0.03f;
-		float loweringTime = 0.1f;
-		float curTime = getTimeSinceStartup();
-		
-		if (curTime < startTime) return 0.0f; 
-		else if (curTime - startTime < raisingTime) {
-			float x = curTime - startTime;
-			return x / raisingTime;
-		} else if (curTime - startTime < raisingTime + loweringTime) {
-			float x = curTime - startTime - raisingTime;
-			return 1.0f - x / loweringTime;
-		} else {
-			return 0.0f;
-		}
 	}
 		
 	@Override
@@ -59,25 +41,14 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 			for (String id : data.videos.keySet()) {
 				float h = getHeight() / data.videos.size();
 				
-				float x = getWidth() / 2, yt = h * j, y = h * (0.5f + j);
+				float yt = h * j;
+				
+				fontFace(lightFont);
 				
 				if (panes.containsKey(id)) {
 					panes.get(id).draw(this, 0, yt, getWidth(), h);
-
-				} else {
-					panes.put(id, new ItemPane(id));
 				}
-								
-				// Drawing counter
-	
-				beginPath();
-				textAlign(HAlign.CENTER, VAlign.MIDDLE);
-				fontFace(lightFont);
-				float textSize = h * (0.85f + 0.15f * textBlinkEnlarging(lastVideoChangeTimes.get(id) != null ? lastVideoChangeTimes.get(id) : 0));
-				fontSize(textSize);
 				
-				text(x, y, String.valueOf(data.videos.get(id).viewsCount));
-				fill();
 				j++;
 			}
 		}
@@ -96,11 +67,13 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		boolean kick = false;
 		if (oldData != null && data != null) {
 			for (String id : data.videos.keySet()) {
-				if (data.videos.containsKey(id) && oldData.videos.containsKey(id)) {
-					if (data.videos.get(id).viewsCount != oldData.videos.get(id).viewsCount) {
-						lastVideoChangeTimes.put(id, curTime);
-						kick = true;
+				
+				if (data.videos.containsKey(id)) {
+					if (!panes.containsKey(id)) {
+						panes.put(id, new ItemPane(id));
 					}
+
+					panes.get(id).setVideo(data.videos.get(id));
 				}
 			}
 		}
@@ -126,6 +99,7 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	private static float backRed = 0.2f, backGreen = 0.21f, backBlue = 0.22f;
 	public TubeViewsWindow() {
 		super (APPNAME, 480, 360, Color.fromRGBA(backRed, backGreen, backBlue, 1.0f));
+		startupMoment = System.currentTimeMillis();
 		
 		try {
 			InputStream is = TubeViewsWindow.class.getResourceAsStream("/tubeviews/ClearSans-Light.ttf");
