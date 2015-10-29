@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import hacktube.HackTubeData;
@@ -47,9 +48,10 @@ public class TubeThread extends Thread {
 				HashMap<String, Video> videosMap = new HashMap<>();
 				float waitTime = 1.0f;
 				
+				JSONObject resp = null;
 				try {
 					if (requestsAfterSearch == 0) {
-						JSONObject resp = HackTubeSearch.requestJSON();
+						resp = HackTubeSearch.requestJSON();
 						JSONArray respResult = (JSONArray) resp.get("result");
 						List<TitleData> tds = HackTubeData.decodeSearchTitleData(respResult);
 						videosList = new ArrayList<>();
@@ -59,7 +61,8 @@ public class TubeThread extends Thread {
 					}
 
 					
-					JSONObject resp = HackTubeQuery.requestJSON(videosList);
+					resp = HackTubeQuery.requestJSON(videosList);
+						
 					JSONArray respResult = (JSONArray) resp.get("result");
 					
 					Set<VideoData> vds = HackTubeData.decodeVideosData(videosList, respResult);
@@ -91,10 +94,15 @@ public class TubeThread extends Thread {
 					waitTime = updater.update(new TubeData(videosMap));
 					
 					requestsAfterSearch = (requestsAfterSearch + 1) % 10;
-	
+					
+				} catch (JSONException e) {
+					if (resp != null) {
+						System.err.println("Server response incorrect: " + resp.toString());
+					}
+					e.printStackTrace();
 				} catch (HackTubeException e) {
 					if (!gracefulInterrupt) {
-						System.out.println("We have a problem here: ");
+						System.err.println("We have a problem here: ");
 						e.printStackTrace();
 					} else {
 						System.out.println("Request interrupted gracefully");

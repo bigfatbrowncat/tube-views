@@ -112,7 +112,7 @@ public class HackTubeQuery {
 			connection.setRequestProperty("referer", "https://www.youtube.com/analytics?o=U");
 
 			connection.setRequestProperty("x-gwt-permutation", "0");	// Necessary (404 instead)
-			connection.setRequestProperty("x-youtube-ytatoken", "c" + Configuration.getInstance().youtubeUserId);			// Necessary (error -302 instead)
+			connection.setRequestProperty("x-youtube-ytatoken", "c" + Configuration.getInstance().account.youtubeUserId);			// Necessary (error -302 instead)
 	
 			// Configuring post request
 			connection.setDoOutput(true);
