@@ -6,12 +6,7 @@ import java.util.HashMap;
 
 import firststep.Color;
 import firststep.Font;
-import firststep.Image;
-import firststep.IntXY;
-import firststep.Paint;
 import firststep.Window;
-import hacktube.HackTube;
-import hacktube.HackTubeException;
 import tubeviews.TubeThread.Request;
 import tubeviews.TubeThread.Status;
 
@@ -29,12 +24,7 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	//private HashMap<String, Float> lastVideoChangeTimes = new HashMap<>();
 
 	private HashMap<String, ItemPane> panes = new HashMap<>();
-	
-	private static long startupMoment;
-	private float getTimeSinceStartup() {
-		return (float)((double)System.currentTimeMillis() - startupMoment) / 1000;
-	}
-		
+			
 	@Override
 	protected synchronized void onFrame() {
 		if (data != null) {
@@ -64,7 +54,6 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	public synchronized float update(TubeData data) {
 		TubeData oldData = this.data;
 		this.data = data;
-		float curTime = getTimeSinceStartup();
 
 		boolean kick = false;
 		if (oldData != null && data != null) {
@@ -101,7 +90,6 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	private static float backRed = 0.2f, backGreen = 0.21f, backBlue = 0.22f;
 	public TubeViewsWindow() {
 		super (APPNAME, 480, 360, Color.fromRGBA(backRed, backGreen, backBlue, 1.0f));
-		startupMoment = System.currentTimeMillis();
 		
 		try {
 			InputStream is = TubeViewsWindow.class.getResourceAsStream("/tubeviews/ClearSans-Light.ttf");
@@ -109,9 +97,7 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		startupMoment = System.currentTimeMillis();
-		
+				
 		tubeThread.setUpdater(this);
 		
 		soundThread.start();
@@ -123,6 +109,27 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		System.out.println("State change: " + request + "; " + status);
 	}
 
+	@Override
+	public void onKeyStateChange(Key key, int scancode, KeyState state, Modifiers modifiers) {
+		if (state == KeyState.PRESS) {
+			if (key == Key.SPACE && modifiers.isEmpty()) {
+				soundThread.randomKick();
+				for (ItemPane ip : panes.values()) {
+					ip.testFullViewsUpdate();
+					ip.testLast48ViewsUpdate();
+				}
+			} else if (key == Key.F && modifiers.isEmpty()) {
+				for (ItemPane ip : panes.values()) {
+					ip.testFullViewsUpdate();
+				}
+			} else if (key == Key.TOP_4 && modifiers.isEmpty()) {
+				for (ItemPane ip : panes.values()) {
+					ip.testLast48ViewsUpdate();
+				}
+			}
+		}
+	}
+	
 	public static void main(String... args) {
         new TubeViewsWindow();
 		Window.loop(fps);

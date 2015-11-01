@@ -98,16 +98,17 @@ public class TubeThread extends Thread {
 					updater.reportState(Request.QUERY, Status.STARTED);
 					List<VideoData> vds = HackTubeQuery.request(foundVideoIDs);
 					
-					HashMap<String, Long> viewsRealtime = new HashMap<>();
+					// Counting views per last 48 hours
+					HashMap<String, Long> views48Hours = new HashMap<>();
 					for (VideoData vd : vds) {
 						String id = vd.titleData.id;
-						long views = vd.titleData.countedViews;
+						long views = 0;
 	
 						for (Long viewsPerPoint : vd.views48Hours.values()) {
 							views += viewsPerPoint;
 						}
 	
-						viewsRealtime.put(id, views);
+						views48Hours.put(id, views);
 					}
 					updater.reportState(Request.QUERY, Status.SUCCEEDED);
 					
@@ -116,10 +117,18 @@ public class TubeThread extends Thread {
 						vdss.put(vd.titleData.id, vd);
 					}
 					
-					//overallViews += vv+=2;
-					for (String s : viewsRealtime.keySet()) {
-						videosMap.put(s, new Video(vdss.get(s).titleData.title, vdss.get(s).titleData.previewImage, viewsRealtime.get(s)));
-						System.out.println(s + ": " + viewsRealtime.get(s));
+					for (String s : vdss.keySet()) {
+						videosMap.put(s, 
+								new Video(
+										vdss.get(s).titleData.title, 
+										vdss.get(s).titleData.previewImage,
+										vdss.get(s).titleData.countedViews,
+										views48Hours.get(s),
+										0L,	// TODO Implement
+										0L	// TODO Implement
+								)
+						);
+						System.out.println(s + ": " + vdss.get(s).titleData.countedViews + " + " + views48Hours.get(s));
 					}
 					System.out.println();
 					

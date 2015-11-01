@@ -36,7 +36,7 @@ class SoundThread extends Thread {
 			MatPoint.connect(mpt21, wlR);
 			MatPoint.connect(mpt22, wlR);
 			
-			ModelData md = new ModelData(2.e+7, 4);
+			ModelData md = new ModelData(2.e+7, 3);
 			md.add(wlL);
 			md.add(mpt11);
 			md.add(mpt12);
@@ -44,12 +44,8 @@ class SoundThread extends Thread {
 			md.add(mpt22);
 			md.add(wlR);
 			
-			ModelCalc mc = new ModelCalc(md, 0.01, 1, dt);
+			ModelCalc mc = new ModelCalc(md, 1, 1, dt);
 			
-			/*for (double time = 0; time < relaxTime; time += dt) {
-				mc.doStep();
-				System.out.println("Time: " + time);
-			}*/
 			return mc;
 		}
 		
@@ -64,7 +60,7 @@ class SoundThread extends Thread {
 		private void doKick() {
 			/*for (int mptIndex = 0; mptIndex < 4; mptIndex ++)*/ {
 				MatPoint[] mps = new MatPoint[] { mpt11, mpt12, mpt21, mpt22 };
-				double kickValue = r.nextDouble() * 2 + 10;
+				double kickValue = r.nextDouble() * 0.2 + 1;
 				
 				double angle;
 				//if (r.nextDouble() < 0.5) {

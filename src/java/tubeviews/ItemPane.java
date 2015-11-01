@@ -33,7 +33,8 @@ public class ItemPane {
 	 */
 	private Image previewImage;
 	
-	private float lastVideoChangeTime;
+	private float fullViewsChangeTime;
+	private float last48ViewsChangeTime;
 	
 	private Video video;
 
@@ -136,6 +137,8 @@ public class ItemPane {
 	
 	public void draw(Canvas c, float left, float top, float width, float height) {
 		if (video != null) {
+			
+			// Image
 			if (getPreviewImage() != null) {
 			
 				IntXY imgSize = previewImage.getSize();
@@ -150,13 +153,34 @@ public class ItemPane {
 				c.fill();
 			}
 		
+			// Views 48 hours
 			c.beginPath();
-			c.textAlign(HAlign.CENTER, VAlign.MIDDLE);
-			float textSize = height * (0.85f + 0.15f * textBlinkEnlarging(lastVideoChangeTime));
+			c.textAlign(HAlign.LEFT, VAlign.MIDDLE);
+			float textSize = height * (0.85f + 0.15f * textBlinkEnlarging(last48ViewsChangeTime));
 			c.fontSize(textSize);
 			
-			c.text(left + width / 2, top + height / 2, String.valueOf(video.viewsCount));
+			c.text(left + width / 2, top + height / 2, String.valueOf(video.viewsLast48Hours));
 			c.fill();
+
+			// +
+			c.beginPath();
+			c.textAlign(HAlign.CENTER, VAlign.MIDDLE);
+			textSize = 0.3f * height;
+			c.fontSize(textSize);
+			
+			c.text(left + width / 2, top + height / 2, "+");
+			c.fill();
+
+			
+			// Views on page
+			c.beginPath();
+			c.textAlign(HAlign.RIGHT, VAlign.MIDDLE);
+			textSize = 0.5f * height * (0.85f + 0.15f * textBlinkEnlarging(fullViewsChangeTime));
+			c.fontSize(textSize);
+			
+			c.text(left + width / 2, top + height / 2, String.valueOf(video.viewsOnPage) + " ");
+			c.fill();
+
 		}
 	}
 	
@@ -164,18 +188,20 @@ public class ItemPane {
 		if (previewImage != null) previewImage.delete();
 	}
 	
-	/**
-	 * 
-	 * @param video
-	 * @return <code>true</code> if the video actually changed 
-	 */
-	public boolean setVideo(Video video) {
-		boolean res = false;
-		if (this.video == null || video.viewsCount != this.video.viewsCount) {
-			this.lastVideoChangeTime = (float)System.currentTimeMillis() / 1000;
-			res = true;
+	public void setVideo(Video video) {
+		if (this.video == null || video.viewsOnPage != this.video.viewsOnPage) {
+			this.fullViewsChangeTime = getTimeSinceStartup();
+		}
+		if (this.video == null || video.viewsLast48Hours != this.video.viewsLast48Hours) {
+			this.last48ViewsChangeTime = getTimeSinceStartup();
 		}
 		this.video = video;
-		return res;
+	}
+	
+	void testFullViewsUpdate() {
+		this.fullViewsChangeTime = getTimeSinceStartup();
+	}
+	void testLast48ViewsUpdate() {
+		this.last48ViewsChangeTime = getTimeSinceStartup();
 	}
 }
