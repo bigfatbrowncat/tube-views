@@ -138,6 +138,7 @@ public class ItemPane {
 	public void draw(Canvas c, float left, float top, float width, float height) {
 		if (video != null) {
 			
+			
 			// Image
 			if (getPreviewImage() != null) {
 			
@@ -153,33 +154,39 @@ public class ItemPane {
 				c.fill();
 			}
 		
-			// Views 48 hours
+			float heightBase = height;
+			if (width < heightBase * 3.5f) {
+				heightBase = width / 3.5f;
+			}
+
+			float plusSize = 0.7f * heightBase;
+			
+			// Views on page
 			c.beginPath();
-			c.textAlign(HAlign.LEFT, VAlign.MIDDLE);
-			float textSize = height * (0.85f + 0.15f * textBlinkEnlarging(last48ViewsChangeTime));
+			c.textAlign(HAlign.RIGHT, VAlign.MIDDLE);
+			float textSize = 0.5f * heightBase * (0.85f + 0.15f * textBlinkEnlarging(fullViewsChangeTime));
 			c.fontSize(textSize);
 			
-			c.text(left + width / 2, top + height / 2, String.valueOf(video.viewsLast48Hours));
+			c.text(left + width * 0.43f - plusSize / 3, top + height / 2 - textSize / 16, String.valueOf(video.viewsOnPage));	// 1.234K
 			c.fill();
 
 			// +
 			c.beginPath();
 			c.textAlign(HAlign.CENTER, VAlign.MIDDLE);
-			textSize = 0.3f * height;
-			c.fontSize(textSize);
+			c.fontSize(plusSize);
 			
-			c.text(left + width / 2, top + height / 2, "+");
+			c.text(left + width * 0.43f, top + height / 2 - plusSize / 10, "+");
 			c.fill();
 
-			
-			// Views on page
+			// Views 48 hours
 			c.beginPath();
-			c.textAlign(HAlign.RIGHT, VAlign.MIDDLE);
-			textSize = 0.5f * height * (0.85f + 0.15f * textBlinkEnlarging(fullViewsChangeTime));
+			c.textAlign(HAlign.LEFT, VAlign.MIDDLE);
+			textSize = 0.9f * heightBase * (0.85f + 0.15f * textBlinkEnlarging(last48ViewsChangeTime));
 			c.fontSize(textSize);
 			
-			c.text(left + width / 2, top + height / 2, String.valueOf(video.viewsOnPage) + " ");
+			c.text(left + width * 0.43f + plusSize / 3, top + height / 2 - textSize / 16, String.valueOf(video.viewsLast48Hours));	// 99.9K
 			c.fill();
+			
 
 		}
 	}
