@@ -174,7 +174,7 @@ public class VideoItemView {
 
 		// +
 		c.textAlign(HAlign.CENTER, VAlign.MIDDLE);
-		c.fontFace(baseFont);
+		c.fontFace(views48Font);
 		c.fontSize(plusSize);
 		float plusX = 0;
 		float plusY = height / 2 - plusSize / 10;
@@ -250,7 +250,7 @@ public class VideoItemView {
 			// +
 			c.beginPath();
 			c.textAlign(HAlign.CENTER, VAlign.MIDDLE);
-			c.fontFace(baseFont);
+			c.fontFace(views48Font);
 			c.fontSize(measures.plusSize);
 			c.text(measures.plusPos.x, measures.plusPos.y + top, "+");
 			c.fill();

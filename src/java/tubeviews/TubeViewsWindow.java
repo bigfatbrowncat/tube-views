@@ -19,7 +19,7 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	private SoundThread soundThread = new SoundThread();
 	private TubeThread tubeThread = new TubeThread();
 	
-	private Font lightFont, regularFont;
+	private Font thinFont, regularFont;
 	
 	private TubeData data;
 	//private HashMap<String, Float> lastVideoChangeTimes = new HashMap<>();
@@ -67,7 +67,7 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 				
 				if (data.videos.containsKey(id)) {
 					if (!panes.containsKey(id)) {
-						panes.put(id, new VideoItemView(lightFont, regularFont, id));
+						panes.put(id, new VideoItemView(thinFont, regularFont, id));
 					}
 
 					if (panes.get(id).setVideo(data.videos.get(id))) kick = true;
@@ -98,8 +98,8 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		super (APPNAME, 480, 360, Color.fromRGBA(backRed, backGreen, backBlue, 1.0f));
 		
 		try {
-			InputStream is = TubeViewsWindow.class.getResourceAsStream("/tubeviews/ClearSans-Light.ttf");
-			lightFont = Font.createOrFindFont("light", is);
+			InputStream is = TubeViewsWindow.class.getResourceAsStream("/tubeviews/ClearSans-Thin.ttf");
+			thinFont = Font.createOrFindFont("thin", is);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
