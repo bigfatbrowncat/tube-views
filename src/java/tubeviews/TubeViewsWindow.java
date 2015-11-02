@@ -9,6 +9,7 @@ import firststep.Font;
 import firststep.Window;
 import tubeviews.TubeThread.Request;
 import tubeviews.TubeThread.Status;
+import tubeviews.VideoItemView.MeasuresCapacitor;
 
 public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler {
 	
@@ -18,31 +19,36 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	private SoundThread soundThread = new SoundThread();
 	private TubeThread tubeThread = new TubeThread();
 	
-	private Font lightFont;
+	private Font lightFont, regularFont;
 	
 	private TubeData data;
 	//private HashMap<String, Float> lastVideoChangeTimes = new HashMap<>();
 
-	private HashMap<String, ItemPane> panes = new HashMap<>();
+	private HashMap<String, VideoItemView> panes = new HashMap<>();
 			
 	@Override
 	protected synchronized void onFrame() {
 		if (data != null) {
 			int j = 0;
+			float h = getHeight() / data.videos.size();
 			
+			VideoItemView.MeasuresCapacitor measuresCapacitor = null;
 			for (String id : data.videos.keySet()) {
-				float h = getHeight() / data.videos.size();
-				
-				float yt = h * j;
-				
-				fontFace(lightFont);
-				
 				if (panes.containsKey(id)) {
-					panes.get(id).draw(this, 0, yt, getWidth(), h);
+					measuresCapacitor = panes.get(id).measure(this, measuresCapacitor, getWidth(), h);
 				}
 				
 				j++;
 			}
+			
+			j = 0;
+			for (String id : data.videos.keySet()) {
+				float yt = h * j;
+				if (panes.containsKey(id)) {
+					panes.get(id).draw(this, measuresCapacitor, 0, yt);
+				}
+				j++;
+			}			
 		}
 	}
 	
@@ -61,10 +67,10 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 				
 				if (data.videos.containsKey(id)) {
 					if (!panes.containsKey(id)) {
-						panes.put(id, new ItemPane(id));
+						panes.put(id, new VideoItemView(lightFont, regularFont, id));
 					}
 
-					panes.get(id).setVideo(data.videos.get(id));
+					if (panes.get(id).setVideo(data.videos.get(id))) kick = true;
 				}
 			}
 		}
@@ -93,11 +99,19 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		
 		try {
 			InputStream is = TubeViewsWindow.class.getResourceAsStream("/tubeviews/ClearSans-Light.ttf");
-			lightFont = Font.createOrFindFont("bold", is);
+			lightFont = Font.createOrFindFont("light", is);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-				
+		
+		try {
+			InputStream is = TubeViewsWindow.class.getResourceAsStream("/tubeviews/ClearSans-Regular.ttf");
+			regularFont = Font.createOrFindFont("regular", is);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		
 		tubeThread.setUpdater(this);
 		
 		soundThread.start();
@@ -114,16 +128,18 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 		if (state == KeyState.PRESS) {
 			if (key == Key.SPACE && modifiers.isEmpty()) {
 				soundThread.randomKick();
-				for (ItemPane ip : panes.values()) {
+				for (VideoItemView ip : panes.values()) {
 					ip.testFullViewsUpdate();
 					ip.testLast48ViewsUpdate();
 				}
 			} else if (key == Key.F && modifiers.isEmpty()) {
-				for (ItemPane ip : panes.values()) {
+				soundThread.randomKick();
+				for (VideoItemView ip : panes.values()) {
 					ip.testFullViewsUpdate();
 				}
 			} else if (key == Key.TOP_4 && modifiers.isEmpty()) {
-				for (ItemPane ip : panes.values()) {
+				soundThread.randomKick();
+				for (VideoItemView ip : panes.values()) {
 					ip.testLast48ViewsUpdate();
 				}
 			}
