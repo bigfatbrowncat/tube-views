@@ -196,7 +196,7 @@ public class VideoItemView {
 		float minLeft = Math.min(Math.min(vopSourceBounds.xmin, pBounds.xmin), v48Bounds.xmin);
 		float maxRight = Math.max(Math.max(vopSourceBounds.xmax, pBounds.xmax), v48Bounds.xmax);
 		float maxWidth = maxRight - minLeft;
-		if (capacitor.maxWidth < maxWidth) {
+		if (capacitor.maxWidth <= maxWidth) {
 			capacitor.maxWidth = maxWidth;
 			
 			float dx = 0;

@@ -2,16 +2,18 @@ package tubeviews;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 
 import firststep.Color;
 import firststep.Font;
 import firststep.Window;
 import tubeviews.TubeThread.Request;
 import tubeviews.TubeThread.Status;
-import tubeviews.VideoItemView.MeasuresCapacitor;
 
-public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler {
+public class TubeViewsWindow extends Window implements AutoCloseable, TubeThread.UpdateHandler {
 	
 	private static final String APPNAME = "Tube Views";
 	private static float fps = 25.0f;
@@ -29,26 +31,50 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	@Override
 	protected synchronized void onFrame() {
 		if (data != null) {
-			int j = 0;
-			float h = getHeight() / data.videos.size();
+
+			// Sorting videos
+			List<String> videoKeys = new ArrayList<String>(data.videos.keySet());
+			videoKeys.sort(new Comparator<String>() {
+				@Override
+				public int compare(String id1, String id2) {
+					// The topmost video is the one that is 
+					// viewed most times during the last 48 hours
+					return (int)(data.videos.get(id2).viewsLast48Hours - data.videos.get(id1).viewsLast48Hours); 
+				}
+			});
 			
+			// Calculating the measures
+			float minAspect = 1.f / 6;		// minimal height/width value
+			float maxAspect = 2.f / 5;		// maximal height/width value
+
+			int shownCount = data.videos.size();
+			float h = getHeight() / shownCount;
+			while ((shownCount > 1) && (h / getWidth() < minAspect)) {
+				shownCount --;
+				h = getHeight() / shownCount;
+			}
+			
+			if (h / getWidth() > maxAspect) {
+				h = maxAspect * getWidth();
+			}
+			
+			// Measuring the panes on the screen
 			VideoItemView.MeasuresCapacitor measuresCapacitor = null;
-			for (String id : data.videos.keySet()) {
+			for (int j = 0; j < shownCount; j++) {
+				String id = videoKeys.get(j);
 				if (panes.containsKey(id)) {
 					measuresCapacitor = panes.get(id).measure(this, measuresCapacitor, getWidth(), h);
 				}
-				
-				j++;
 			}
 			
-			j = 0;
-			for (String id : data.videos.keySet()) {
+			// Drawing the panes on the screen
+			for (int j = 0; j < shownCount; j++) {
+				String id = videoKeys.get(j);
 				float yt = h * j;
 				if (panes.containsKey(id)) {
 					panes.get(id).draw(this, measuresCapacitor, 0, yt);
 				}
-				j++;
-			}			
+			}	
 		}
 	}
 	
@@ -85,12 +111,29 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	protected void onSizeChange(final int width, final int height) {
 		
 	}
+
+	@Override
+	public void close() {
+		try {
+			if (soundThread != null) {
+				soundThread.stopSound();
+				soundThread.join();
+				soundThread = null;
+			}
+			if (tubeThread != null) {
+				tubeThread.interrupt();
+				tubeThread.join();
+				tubeThread = null;
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	@Override
-	public void onClose() {
-		soundThread.stopSound();
-		tubeThread.interrupt();
-		super.onClose();
+	public boolean onCloseAsked() {
+		close();
+		return super.onCloseAsked();
 	}
 	
 	private static float backRed = 0.2f, backGreen = 0.21f, backBlue = 0.22f;
@@ -147,8 +190,9 @@ public class TubeViewsWindow extends Window implements TubeThread.UpdateHandler 
 	}
 	
 	public static void main(String... args) {
-        new TubeViewsWindow();
-		Window.loop(fps);
+		try (TubeViewsWindow mainWindow = new TubeViewsWindow()){
+			Window.loop(fps);
+		}
 	}
 	
 }
