@@ -91,7 +91,7 @@ class SoundThread extends Thread {
 				isp.channelCount = channels;
 				
 				float[] buf = new float[frames * channels];
-				while (true) {
+				while (!stopFlag) {
 					try {
 						isp.device = PortAudio.getDefaultOutputDevice();
 						isp.sampleFormat = PortAudio.FORMAT_FLOAT_32;
@@ -114,12 +114,13 @@ class SoundThread extends Thread {
 					} catch (PortAudioException e) {
 						System.out.println("Audio device problem:");
 						e.printStackTrace();
-					}
-					if (stopFlag) break;
+					} 
 				}
 			} catch (PortAudioException e) {
 				System.out.println("Audio device problem:");
 				e.printStackTrace();
 			}
+			System.out.println("Sound thread finished gracefully");
+
 		}
 	};

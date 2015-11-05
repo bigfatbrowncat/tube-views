@@ -3,6 +3,7 @@ package tubeviews;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +35,7 @@ public class TubeViewsWindow extends Window implements AutoCloseable, TubeThread
 
 			// Sorting videos
 			List<String> videoKeys = new ArrayList<String>(data.videos.keySet());
-			videoKeys.sort(new Comparator<String>() {
+			Collections.sort(videoKeys, new Comparator<String>() {
 				@Override
 				public int compare(String id1, String id2) {
 					// The topmost video is the one that is 
@@ -114,20 +115,15 @@ public class TubeViewsWindow extends Window implements AutoCloseable, TubeThread
 
 	@Override
 	public void close() {
-		try {
-			if (soundThread != null) {
-				soundThread.stopSound();
-				soundThread.join();
-				soundThread = null;
-			}
-			if (tubeThread != null) {
-				tubeThread.interrupt();
-				tubeThread.join();
-				tubeThread = null;
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
+		if (soundThread != null) {
+			soundThread.stopSound();
+			soundThread = null;
 		}
+		if (tubeThread != null) {
+			tubeThread.cancel();
+			tubeThread = null;
+		}
+		System.out.println("Threads stopped");
 	}
 	
 	@Override

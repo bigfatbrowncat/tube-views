@@ -22,6 +22,16 @@ public class HackTube {
         	}
         }
 	}
+	
+	private static volatile boolean cancelled = false;
+	
+	public static void cancelAllConnections() {
+		cancelled = true;
+		HackTubeServiceLogin.interruptConnection();
+		HackTubeServiceLoginAuth.interruptConnection();
+		HackTubeQuery.interruptConnection();
+		HackTubeSearch.interruptConnection();
+	}
 
 	private static void printCookies() {
 		CookieManager manager = (CookieManager) CookieHandler.getDefault();
@@ -32,17 +42,31 @@ public class HackTube {
 		}
 	}
 	
-	public static void login() throws RequestException {
-		System.out.println(" -------------------- STAGE 1 ----------------------");
+	public static boolean login() throws RequestException {
+		System.out.println("Stage 1: Opening login page");
 
-		HackTubeServiceLogin.requestLoginPage();
-		printCookies();
+		try {
+			HackTubeServiceLogin.requestLoginPage();
+			printCookies();
+		} catch (RequestException e) {
+			if (!cancelled) {
+				throw e;
+			}
+		}
+		if (cancelled) return false;
 		
-		System.out.println(" -------------------- STAGE 2 ----------------------");
+		System.out.println("Stage 2: Logging into YouTube");
+
+		try {
+			HackTubeServiceLoginAuth.requestLoginPage(Configuration.getInstance().account.email, Configuration.getInstance().account.password);
+			printCookies();
+		} catch (RequestException e) {
+			if (!cancelled) {
+				throw e;
+			}
+		}
+		if (cancelled) return false;
 		
-		HackTubeServiceLoginAuth.requestLoginPage(Configuration.getInstance().account.email, Configuration.getInstance().account.password);
-		printCookies();
-		
-        System.out.println(" -------------------- STAGE 3 ----------------------");
+        return true;
 	}
 }
