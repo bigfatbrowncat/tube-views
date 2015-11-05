@@ -38,7 +38,7 @@ public class TubeThread extends Thread {
 	}
 	
 	private UpdateHandler updater;
-	private volatile boolean gracefulCancel = true;
+	private volatile boolean gracefulCancel = false;
 	
 	public void setUpdater(UpdateHandler updater) {
 		this.updater = updater;
