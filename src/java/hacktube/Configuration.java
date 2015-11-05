@@ -1,12 +1,11 @@
 package hacktube;
 
 import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -75,11 +74,23 @@ public class Configuration {
 	public final Account account;
 	public final Network network;
 	
+	public static String readFileAsString(File file) throws IOException {
+	    DataInputStream dis = new DataInputStream(new FileInputStream(file));
+	    try {
+	        long len = file.length();
+	        if (len > Integer.MAX_VALUE) throw new IOException("File is too large: " + len +" bytes.");
+	        byte[] bytes = new byte[(int) len];
+	        dis.readFully(bytes);
+	        return new String(bytes, "UTF-8");
+	    } finally {
+	        dis.close();
+	    }
+	}
+	
 	Configuration(File configFile) {
 		try {
-			byte[] encoded = Files.readAllBytes(Paths.get(configFile.toURI()));
-			String contents = new String(encoded, StandardCharsets.UTF_8);
-	
+			String contents = readFileAsString(configFile);
+			
 			JSONObject confObj = new JSONObject(contents);
 			
 			if (confObj.has("account")) {
