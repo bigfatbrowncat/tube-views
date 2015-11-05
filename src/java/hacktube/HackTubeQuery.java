@@ -147,7 +147,6 @@ public class HackTubeQuery {
 			
 			// print result
 			String respJSON = response.toString();
-			
 			JSONObject resp = new JSONObject(respJSON);
 			
 			return resp;

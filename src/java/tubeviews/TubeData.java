@@ -44,7 +44,7 @@ public class TubeData {
 
 	public TubeData(Map<String, Video> videos) {
 		super();
-		this.videos = Collections.unmodifiableMap(new HashMap<>(videos));
+		this.videos = /*Collections.unmodifiableMap(*/new HashMap<>(videos)/*)*/;
 	}
 	
 }

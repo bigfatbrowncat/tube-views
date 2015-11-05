@@ -288,6 +288,10 @@ public class VideoItemView {
 		return res;
 	}
 	
+	public Video getVideo() {
+		return video;
+	}
+	
 	void testFullViewsUpdate() {
 		this.viewsOnPageChangeTime = getTimeSinceStartup();
 	}

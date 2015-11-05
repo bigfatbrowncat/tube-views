@@ -11,6 +11,7 @@ import java.util.List;
 import firststep.Color;
 import firststep.Font;
 import firststep.Window;
+import tubeviews.TubeData.Video;
 import tubeviews.TubeThread.Request;
 import tubeviews.TubeThread.Status;
 
@@ -97,6 +98,21 @@ public class TubeViewsWindow extends Window implements AutoCloseable, TubeThread
 						panes.put(id, new VideoItemView(thinFont, regularFont, id));
 					}
 
+					// Due to a rare YouTube bug (709<->707), 
+					// we hack viewsOnPage not to decrease
+					Video oldVideo = panes.get(id).getVideo();
+					Video newVideo = data.videos.get(id);
+					if (newVideo != null && oldVideo != null && newVideo.viewsOnPage < oldVideo.viewsOnPage) {
+						data.videos.put(id, new Video(
+								newVideo.name, 
+								newVideo.preview, 
+								oldVideo.viewsOnPage,
+								newVideo.viewsLast48Hours,
+								newVideo.viewsLastHour,
+								newVideo.viewsLastMinute
+								));
+					}
+					
 					if (panes.get(id).setVideo(data.videos.get(id))) kick = true;
 				}
 			}
